@@ -19,3 +19,7 @@ project/plugins/project/
 
 # spark
 metastore_db/
+
+# content
+data/
+sujet/

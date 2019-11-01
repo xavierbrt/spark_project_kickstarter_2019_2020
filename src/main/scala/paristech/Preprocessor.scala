@@ -1,7 +1,7 @@
 package paristech
 
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
 
 object Preprocessor {
 
@@ -28,6 +28,8 @@ object Preprocessor {
       .appName("TP Spark : Preprocessor")
       .getOrCreate()
 
+    import spark.implicits._  // to use the symbol $
+
     /*******************************************************************************
       *
       *       TP 2
@@ -40,8 +42,56 @@ object Preprocessor {
       *
       ********************************************************************************/
 
-    println("\n")
-    println("Hello World ! from Preprocessor")
-    println("\n")
+    val df: DataFrame = spark
+        .read
+        .option("header", true)
+        .option("inferSchema", "true")
+        .csv("./data/train_clean.csv")
+
+    println(s"Nombre de lignes: ${df.count}")
+    println(s"Nombre de colonnes: ${df.columns.length}")
+
+
+    val dfCasted: DataFrame = df
+      .withColumn("goal", $"goal".cast("Int"))
+      .withColumn("deadline" , $"deadline".cast("Int"))
+      .withColumn("state_changed_at", $"state_changed_at".cast("Int"))
+      .withColumn("created_at", $"created_at".cast("Int"))
+      .withColumn("launched_at", $"launched_at".cast("Int"))
+
+    dfCasted.show()
+    dfCasted.printSchema()
+
+    dfCasted
+      .select("goal", "deadline", "state_changed_at", "created_at", "launched_at", "backers_count", "final_status")
+      .describe()
+      .show
+
+    /*
+    dfCasted.groupBy("disable_communication").count.orderBy($"count".desc).show(100)
+    dfCasted.groupBy("country").count.orderBy($"count".desc).show(100)
+    dfCasted.groupBy("currency").count.orderBy($"count".desc).show(100)
+    dfCasted.select("deadline").dropDuplicates.show()
+    dfCasted.groupBy("state_changed_at").count.orderBy($"count".desc).show(100)
+    dfCasted.groupBy("backers_count").count.orderBy($"count".desc).show(100)
+    dfCasted.select("goal", "final_status").show(30)
+    dfCasted.groupBy("country", "currency").count.orderBy($"count".desc).show(50)*/
+
+    val df2: DataFrame = dfCasted.drop("disable_communication")
+    val dfNoFutur: DataFrame = df2.drop("backers_count", "state_changed_at")
+
+    df.filter($"country" === "False")
+      .groupBy("currency")
+      .count
+      .orderBy($"count".desc)
+      .show(50)
+
+    val test = df.filter($"final_status" =!= 1 && $"final_status" =!= 0).count
+    println(test)
+
+    val sqlContext = spark.sqlContext
+    val d = sqlContext.read.csv("./data/train_clean.csv").options(header='true', inferschema='true', quote='"', delimiter=',')
+
+
   }
 }
