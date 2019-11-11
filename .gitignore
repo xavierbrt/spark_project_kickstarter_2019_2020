@@ -17,9 +17,12 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
-# spark
+# Spark
 metastore_db/
 
-# content
+# Content
 data/
 sujet/
+
+# Other
+jupyter_notebook/.ipynb_checkpoints

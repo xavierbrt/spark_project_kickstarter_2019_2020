@@ -42,16 +42,21 @@ object Preprocessor {
       *
       ********************************************************************************/
 
+
+    // Chargement du fichier train dans un dataframe
     val df: DataFrame = spark
         .read
         .option("header", true)
         .option("inferSchema", "true")
+        .option("quote", "\"")
+        .option("escape", "\"")
         .csv("./data/train_clean.csv")
 
     println(s"Nombre de lignes: ${df.count}")
     println(s"Nombre de colonnes: ${df.columns.length}")
 
 
+    // Transformation du type des colonnes
     val dfCasted: DataFrame = df
       .withColumn("goal", $"goal".cast("Int"))
       .withColumn("deadline" , $"deadline".cast("Int"))
@@ -61,6 +66,8 @@ object Preprocessor {
 
     dfCasted.show()
     dfCasted.printSchema()
+
+    /* DATA CLEANING */
 
     dfCasted
       .select("goal", "deadline", "state_changed_at", "created_at", "launched_at", "backers_count", "final_status")
@@ -80,17 +87,17 @@ object Preprocessor {
     val df2: DataFrame = dfCasted.drop("disable_communication")
     val dfNoFutur: DataFrame = df2.drop("backers_count", "state_changed_at")
 
-    df.filter($"country" === "False")
+    /*df.filter($"country" === "False")
       .groupBy("currency")
       .count
       .orderBy($"count".desc)
-      .show(50)
+      .show(50)*/
 
     val test = df.filter($"final_status" =!= 1 && $"final_status" =!= 0).count
     println(test)
 
-    val sqlContext = spark.sqlContext
-    val d = sqlContext.read.csv("./data/train_clean.csv").options(header='true', inferschema='true', quote='"', delimiter=',')
+    //val sqlContext = spark.sqlContext
+    //val d = sqlContext.read.csv("./data/train_clean.csv").options(header='true', inferschema='true', quote='"', delimiter=',')
 
 
   }
