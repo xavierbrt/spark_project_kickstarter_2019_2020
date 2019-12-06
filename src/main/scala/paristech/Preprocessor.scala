@@ -2,10 +2,15 @@ package paristech
 
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession}
+import org.apache.spark.sql.functions._
 
 object Preprocessor {
 
   def main(args: Array[String]): Unit = {
+
+    /**
+      * Initialisation de Spark
+      */
 
     // Des réglages optionnels du job spark. Les réglages par défaut fonctionnent très bien pour ce TP.
     // On vous donne un exemple de setting quand même
@@ -30,18 +35,10 @@ object Preprocessor {
 
     import spark.implicits._  // to use the symbol $
 
-    /*******************************************************************************
-      *
-      *       TP 2
-      *
-      *       - Charger un fichier csv dans un dataFrame
-      *       - Pre-processing: cleaning, filters, feature engineering => filter, select, drop, na.fill, join, udf, distinct, count, describe, collect
-      *       - Sauver le dataframe au format parquet
-      *
-      *       if problems with unimported modules => sbt plugins update
-      *
-      ********************************************************************************/
 
+    /**
+      * Chargement du dataframe
+      */
 
     // Chargement du fichier train dans un dataframe
     val df: DataFrame = spark
@@ -52,9 +49,14 @@ object Preprocessor {
         .option("escape", "\"")
         .csv("./data/train_clean.csv")
 
+    println("\n========================= Chargement du fichier train_clean.csv ===================================")
     println(s"Nombre de lignes: ${df.count}")
     println(s"Nombre de colonnes: ${df.columns.length}")
 
+
+    /**
+      * Cast des colonnes, suppression de colonnes
+      */
 
     // Transformation du type des colonnes
     val dfCasted: DataFrame = df
@@ -64,41 +66,83 @@ object Preprocessor {
       .withColumn("created_at", $"created_at".cast("Int"))
       .withColumn("launched_at", $"launched_at".cast("Int"))
 
-    dfCasted.show()
-    dfCasted.printSchema()
-
-    /* DATA CLEANING */
-
     dfCasted
       .select("goal", "deadline", "state_changed_at", "created_at", "launched_at", "backers_count", "final_status")
       .describe()
       .show
 
-    /*
-    dfCasted.groupBy("disable_communication").count.orderBy($"count".desc).show(100)
-    dfCasted.groupBy("country").count.orderBy($"count".desc).show(100)
-    dfCasted.groupBy("currency").count.orderBy($"count".desc).show(100)
-    dfCasted.select("deadline").dropDuplicates.show()
-    dfCasted.groupBy("state_changed_at").count.orderBy($"count".desc).show(100)
-    dfCasted.groupBy("backers_count").count.orderBy($"count".desc).show(100)
-    dfCasted.select("goal", "final_status").show(30)
-    dfCasted.groupBy("country", "currency").count.orderBy($"count".desc).show(50)*/
+    println("Structure du dataframe: ")
+    dfCasted.printSchema()
 
-    val df2: DataFrame = dfCasted.drop("disable_communication")
-    val dfNoFutur: DataFrame = df2.drop("backers_count", "state_changed_at")
+    // On enlève la colonne disable_communication, qui contient peu de données et les colonnes backers_count et state_changed_at qui sont des fuites du futur
+    val df2: DataFrame = df.drop("disable_communication", "backers_count", "state_changed_at")
 
-    /*df.filter($"country" === "False")
-      .groupBy("currency")
-      .count
-      .orderBy($"count".desc)
-      .show(50)*/
 
-    val test = df.filter($"final_status" =!= 1 && $"final_status" =!= 0).count
-    println(test)
+    /**
+      * Vérification des données
+      */
 
-    //val sqlContext = spark.sqlContext
-    //val d = sqlContext.read.csv("./data/train_clean.csv").options(header='true', inferschema='true', quote='"', delimiter=',')
+    // Ce n'est plus la peine de cleaner les colonnes currency et country, qui sont bien remplies
+    // (elles étaient mal remplies au départ car les virgules n'étaient pas échappées à la lecture du fichier csv)
+    println("================= Description des données pour chercher les anomalies =======================")
+    df2.select("goal", "country", "currency", "deadline","created_at", "launched_at","final_status")
+      .describe()
+      .show
 
+    df2.groupBy("final_status").count.show()  // 0: fail, 1: success
+
+
+    /**
+      * Retraitement de colonnes
+      */
+
+    // create column "days_campaign" with the (truncated) number of days between launch time and deadline
+    val df3: DataFrame = df2.withColumn("days_campaign", datediff(from_unixtime($"deadline"), from_unixtime($"launched_at")))
+
+    // create column "hours_prepa" with the number of hours between creation time and launch time
+    val df4: DataFrame = df3.withColumn("hours_prepa", round(($"launched_at" - $"created_at")/3600,3))
+
+    // create column "launched_month" with the month of the launched date
+    val df4b: DataFrame = df4.withColumn("launched_month", month(from_unixtime($"launched_at")))
+
+    val df5: DataFrame = df4b.drop("launched_at", "created_at", "deadline")
+
+    val df6: DataFrame = df5.withColumn("name", lower($"name"))
+      .withColumn("desc", lower($"desc"))
+      .withColumn("keywords", regexp_replace(lower($"keywords"), "-", " "))
+
+    val df7: DataFrame = df6.withColumn("text", concat_ws(" ",$"name", $"desc",$"keywords"))
+    val df8: DataFrame = df7.drop("name", "desc", "keywords")
+
+
+    /**
+      * Vérification des valeurs nulles
+      */
+
+    println("========================= Vérification des valeurs nulles ===================================")
+    // There is no null values. To verify :
+    println("project_id:", df8.filter("project_id is null").count())
+    println("goal:", df8.filter("goal is null").count())
+    println("country:", df8.filter("country is null").count())
+    println("currency:", df8.filter("currency is null").count())
+    println("final_status:", df8.filter("final_status is null").count())
+    println("days_campaign:", df8.filter("days_campaign is null").count())
+    println("hours_prepa:", df8.filter("hours_prepa is null").count())
+    println("text:", df8.filter("text is null").count())
+    println("launched_month:", df8.filter("launched_month is null").count())
+
+
+    /**
+      * Export du dataframe
+      */
+
+    println("\n========================= Export du dataframe ===================================")
+    println(s"Nombre de lignes: ${df8.count}")
+    println(s"Nombre de colonnes: ${df8.columns.length}")
+    df8.show()
+
+    df8.write.mode("overwrite").parquet("./data/dataframe")
+    println("Dataframe exporté dans le dossier data/dataframe")
 
   }
 }
