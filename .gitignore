@@ -21,8 +21,11 @@ project/plugins/project/
 metastore_db/
 
 # Content
-data/
+data/dataframe
+data/dataframe_save
+data/model
 sujet/
+
 
 # Other
 jupyter_notebook/.ipynb_checkpoints

@@ -103,9 +103,9 @@ object Preprocessor {
     val df4: DataFrame = df3.withColumn("hours_prepa", round(($"launched_at" - $"created_at")/3600,3))
 
     // create column "launched_month" with the month of the launched date
-    val df4b: DataFrame = df4.withColumn("launched_month", month(from_unixtime($"launched_at")))
+    //val df4b: DataFrame = df4.withColumn("launched_month", month(from_unixtime($"launched_at")))
 
-    val df5: DataFrame = df4b.drop("launched_at", "created_at", "deadline")
+    val df5: DataFrame = df4.drop("launched_at", "created_at", "deadline")
 
     val df6: DataFrame = df5.withColumn("name", lower($"name"))
       .withColumn("desc", lower($"desc"))
@@ -129,7 +129,7 @@ object Preprocessor {
     println("days_campaign:", df8.filter("days_campaign is null").count())
     println("hours_prepa:", df8.filter("hours_prepa is null").count())
     println("text:", df8.filter("text is null").count())
-    println("launched_month:", df8.filter("launched_month is null").count())
+    //println("launched_month:", df8.filter("launched_month is null").count())
 
 
     /**
@@ -142,7 +142,7 @@ object Preprocessor {
     df8.show()
 
     df8.write.mode("overwrite").parquet("./data/dataframe")
-    println("Dataframe exporté dans le dossier data/dataframe")
+    println("Dataframe exporté dans le dossier data/dataframe\n\n")
 
   }
 }
