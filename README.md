@@ -1,9 +1,17 @@
-# Spark project MS Big Data Télécom : Kickstarter campaigns
+# Projet Spark MS Big Data Télécom : campagnes Kickstarter 
 
-Spark project for MS Big Data Telecom based on Kickstarter campaigns 2019-2020
+Projet Spark pour le MS Big Data Telecom basé sur des données Kickstarter.
 
 
 ## Exécution du projet
+Cloner le repo Git. Les données nécessaires sont déjà présentes, dans le dossier data.<br />
+
+Le script build_and_submit.sh identifie le chemin vers l'installation Spark avec:
+> path_to_spark="$HOME/spark-2.3.4-bin-hadoop2.7"
+
+Il faut modifier cette ligne si besoin avant d'exécuter le script.
+
+
 Pour exécuter le Preprocessor (préparation des données, export au format parquet):
 > ./build_and_submit.sh Preprocessor
 
