@@ -15,8 +15,8 @@ Il faut modifier cette ligne si besoin avant d'exécuter le script.
 Pour exécuter le Preprocessor (préparation des données, export au format parquet):
 > ./build_and_submit.sh Preprocessor
 
-Pour exécuter le Trainer (implémentation du modèle):
-Nécessite d'avoir précédemment exécuter le Preprocessor.
+Pour exécuter le Trainer (implémentation du modèle):<br />
+(Nécessite d'avoir précédemment exécuté le Preprocessor)
 > ./build_and_submit.sh Trainer
 
 Le code source est également disponible sous forme de Jupyter notebook, dans le dossier /notebooks. Les notebooks ont été exportés en format html pour faciliter leur affichage. 
@@ -32,7 +32,7 @@ Voici les **F1 score** obtenus avec les différentes configurations du pipeline:
 ## Améliorations faites
 Voici une liste des améliorations faites, ou des pistes étudiées :
 - Lecture du csv d'entrée en **échappant les caractères de quote '\"'**, car sans ça, les virgules dans les textes de description étaient prises pour un séparateur.
-- Création de **2 nouvelles colonnes** : mois de lancement de la campagne et nombre de caractères dans la description. Ces paramètres n'amélioraient finalement pas le modèle.
+- Création de **2 nouvelles colonnes** : mois de lancement de la campagne et nombre de caractères dans la description. Ces paramètres n'amélioraient finalement pas le modèle (F1 score entre 0.64 et 0.65).
 - **Ajout de valeurs** pour minDF et elasticNetParam lors de la recherche des meilleurs paramètres du modèle. Ceci a permis d'améliorer le score de prédiction.
 - Test d'un **modèle random forest**. Ce modèle donne un résultat très bas (F1 score de 0.54). On pourrait l'optimiser avec une recherche de paramètres, mais le modèle simple prend déjà beaucoup de temps à s'exécuter. Un résultat est disponible sur le notebook associé (dossier notebook).
 - **Affichage des coefficients** impactant le plus la régression linéaire, pour voir quels paramètres impactent le plus la régression. Il s'avère que les paramètres impactant le plus la régression sont le pays, de nombreux termes provenant de la transformation en tf-idf et le montant du projet.
