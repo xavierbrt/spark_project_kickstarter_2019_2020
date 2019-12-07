@@ -21,9 +21,10 @@ project/plugins/project/
 metastore_db/
 
 # Content
-data/dataframe
-data/dataframe_save
-data/model
+src/main/resources/dataframe
+src/main/resources/dataframe_save
+src/main/resources/model
+data/
 sujet/
 
 

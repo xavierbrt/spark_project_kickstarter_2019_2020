@@ -46,7 +46,7 @@ object Trainer {
       * Modèle 1 : Modèle de base, données prepared_trainingset
       */
     println("\n========================== Chargement du dataframe =====================================")
-    val df = loadDataFrame(spark, "./data/prepared_trainingset/")
+    val df = loadDataFrame(spark, "src/main/resources/prepared_trainingset/")
     val Array(training, test) = df.randomSplit(Array(0.9, 0.1), seed=261)
 
     println("\n========================= Implémentation du pipeline ===================================")
@@ -54,7 +54,7 @@ object Trainer {
     val model = pipeline.fit(training)
     val evaluator = createEvaluator(spark)
     // Sauvegarde du modèle entraîné
-    model.write.overwrite().save("./data/model/spark-logistic-regression-model")
+    model.write.overwrite().save("src/main/resources/model/spark-logistic-regression-model")
 
     println("\n=============== Test du modèle (sur les données prepared_trainingset) ==================")
     println("Calcul des prédictions sur les données de test")
@@ -71,7 +71,7 @@ object Trainer {
     val (validation, paramGrid) = createValidation(spark, model, cvModel, lr, pipeline, evaluator)
     val model_improved = validation.fit(training)
     // Sauvegarde du modèle entraîné
-    model_improved.write.overwrite().save("./data/model/spark-logistic-regression-model-improved")
+    model_improved.write.overwrite().save("src/main/resources/model/spark-logistic-regression-model-improved")
 
     println("Calcul des prédictions sur les données de test, avec les paramètres sélectionnés")
     val dfWithPredictionsFirstData = model_improved.transform(test)
@@ -83,12 +83,12 @@ object Trainer {
       */
 
     println("\n============= Test du modèle sur les données cleanées par le Preprocessor ===========================")
-    val df_cleaned = loadDataFrame(spark, "./data/dataframe/")
+    val df_cleaned = loadDataFrame(spark, "src/main/resources/dataframe/")
     val Array(training_cleaned, test_cleaned) = df_cleaned.randomSplit(Array(0.9, 0.1), seed=261)
     val validation_cleaned = createValidationCleaned(spark, tokenizer, stopWordsRemover, cvModel, idf, encoder, assembler, lr, paramGrid, evaluator)
     val model_improved_training_cleaned = validation_cleaned.fit(training_cleaned)
     // Sauvegarde du modèle entraîné
-    model_improved_training_cleaned.write.overwrite().save("./data/model/spark-logistic-regression-model-final")
+    model_improved_training_cleaned.write.overwrite().save("src/main/resources/model/spark-logistic-regression-model-final")
 
     println("Résultat des prédictions sur les données cleanées précédemment:")
     val dfWithPredictions = model_improved_training_cleaned.transform(test_cleaned)
@@ -110,9 +110,6 @@ object Trainer {
     randomForest(spark, tokenizer, stopWordsRemover, cvModel, idf, encoder, assembler, evaluator, training_cleaned, test_cleaned)
 
   }
-
-
-
 
 
 

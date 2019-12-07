@@ -4,9 +4,9 @@ Projet Spark pour le MS Big Data Telecom basé sur des données Kickstarter.
 
 
 ## Exécution du projet
-Cloner le repo Git. Les données nécessaires sont déjà présentes, dans le dossier data.<br />
+Cloner le repo Git. Les données nécessaires sont déjà présentes, dans le dossier _src/main/resources/_.<br />
 
-Le script build_and_submit.sh identifie le chemin vers l'installation Spark avec:
+Le script build_and_submit.sh pointe vers l'installation de Spark de cette façon:
 > path_to_spark="$HOME/spark-2.3.4-bin-hadoop2.7"
 
 Il faut modifier cette ligne si besoin avant d'exécuter le script.

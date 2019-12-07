@@ -47,7 +47,7 @@ object Preprocessor {
         .option("inferSchema", "true")
         .option("quote", "\"")
         .option("escape", "\"")
-        .csv("./data/train_clean.csv")
+        .csv("src/main/resources/train_clean.csv")
 
     println("\n========================= Chargement du fichier train_clean.csv ===================================")
     println(s"Nombre de lignes: ${df.count}")
@@ -141,8 +141,8 @@ object Preprocessor {
     println(s"Nombre de colonnes: ${df8.columns.length}")
     df8.show()
 
-    df8.write.mode("overwrite").parquet("./data/dataframe")
-    println("Dataframe exporté dans le dossier data/dataframe\n\n")
+    df8.write.mode("overwrite").parquet("src/main/resources/dataframe")
+    println("Dataframe exporté dans le dossier src/main/resources/dataframe\n\n")
 
   }
 }
